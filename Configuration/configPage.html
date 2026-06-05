@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Subtitle Nexus</title>
+</head>
+<body>
+    <div id="SubtitleNexusConfigPage" data-role="page" class="page type-interior pluginConfigurationPage"
+         data-require="emby-input,emby-button,emby-select,emby-checkbox">
+        <div data-role="content">
+            <div class="content-primary">
+
+                <form id="SubtitleNexusConfigForm">
+                    <h2>Subtitle Nexus</h2>
+                    <p>
+                        Generate AI subtitles for your media via
+                        <a href="https://subtitlenexus.com" target="_blank">subtitlenexus.com</a>.
+                        Configure your API key below, then either run the
+                        <strong>Scan library for missing subtitles</strong> scheduled task,
+                        or call the per-item API endpoint
+                        (<code>POST /SubtitleNexus/Generate/{ItemId}</code>).
+                    </p>
+
+                    <div class="inputContainer">
+                        <label class="inputeLabel inputLabelUnfocused" for="ApiKey">API Key</label>
+                        <input is="emby-input" type="password" id="ApiKey" name="ApiKey" required />
+                        <div class="fieldDescription">
+                            Your Subtitle Nexus API key from
+                            <a href="https://subtitlenexus.com/account" target="_blank">subtitlenexus.com/account</a>.
+                        </div>
+                    </div>
+
+                    <div class="inputContainer">
+                        <label class="inputeLabel inputLabelUnfocused" for="Domain">API Domain</label>
+                        <input is="emby-input" type="text" id="Domain" name="Domain" />
+                        <div class="fieldDescription">
+                            Nexus API host. Default: <code>api.subtitlenexus.com</code>.
+                        </div>
+                    </div>
+
+                    <div class="inputContainer">
+                        <label class="inputeLabel inputLabelUnfocused" for="Model">Model Version</label>
+                        <input is="emby-input" type="text" id="Model" name="Model" />
+                        <div class="fieldDescription">
+                            Subtitle model slug (e.g. <code>lulu-2605</code>, <code>vega-preview</code>).
+                            Default: <code>lulu-2605</code>.
+                        </div>
+                    </div>
+
+                    <div class="inputContainer">
+                        <label class="inputeLabel inputLabelUnfocused" for="SubtitleLanguage">Subtitle Language</label>
+                        <input is="emby-input" type="text" id="SubtitleLanguage" name="SubtitleLanguage" />
+                        <div class="fieldDescription">
+                            Output subtitle language code (e.g. <code>en</code>, <code>es</code>, <code>ja</code>).
+                            Default: <code>en</code>.
+                        </div>
+                    </div>
+
+                    <div class="inputContainer">
+                        <label class="inputeLabel inputLabelUnfocused" for="AudioLanguage">Audio Language</label>
+                        <input is="emby-input" type="text" id="AudioLanguage" name="AudioLanguage" />
+                        <div class="fieldDescription">
+                            Source audio language code. Default: <code>ja</code>.
+                        </div>
+                    </div>
+
+                    <div class="selectContainer">
+                        <label class="selectLabel" for="Visibility">Visibility</label>
+                        <select is="emby-select" id="Visibility" name="Visibility">
+                            <option value="PUBLIC">PUBLIC (shared with the Nexus community)</option>
+                            <option value="UNLISTED">UNLISTED</option>
+                        </select>
+                    </div>
+
+                    <div class="checkboxContainer">
+                        <label>
+                            <input is="emby-checkbox" type="checkbox" id="IgnoreCommunitySubs" name="IgnoreCommunitySubs" />
+                            <span>Ignore community subs (only reuse your own cached subtitles)</span>
+                        </label>
+                    </div>
+
+                    <div class="checkboxContainer">
+                        <label>
+                            <input is="emby-checkbox" type="checkbox" id="DisableSubtitleSearch" name="DisableSubtitleSearch" />
+                            <span>Disable cache search (always submit a new request)</span>
+                        </label>
+                    </div>
+
+                    <div class="checkboxContainer">
+                        <label>
+                            <input is="emby-checkbox" type="checkbox" id="AutoPurchasePastDailyLimit" name="AutoPurchasePastDailyLimit" />
+                            <span>Auto-purchase past daily limit (spend tokens automatically)</span>
+                        </label>
+                    </div>
+
+                    <div class="inputContainer">
+                        <label class="inputeLabel inputLabelUnfocused" for="FfmpegPath">ffmpeg Path</label>
+                        <input is="emby-input" type="text" id="FfmpegPath" name="FfmpegPath" />
+                        <div class="fieldDescription">
+                            Absolute path to ffmpeg. Leave blank to use <code>ffmpeg</code> from <code>$PATH</code>.
+                        </div>
+                    </div>
+
+                    <div class="inputContainer">
+                        <label class="inputeLabel inputLabelUnfocused" for="MaxConcurrentJobs">Max Concurrent Jobs</label>
+                        <input is="emby-input" type="number" id="MaxConcurrentJobs" name="MaxConcurrentJobs" min="1" max="8" />
+                        <div class="fieldDescription">
+                            Number of subtitle jobs to run in parallel during library scans. Default: 1.
+                        </div>
+                    </div>
+
+                    <br />
+
+                    <div>
+                        <button is="emby-button" type="submit" class="raised button-submit block">
+                            <span>Save</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <script type="text/javascript">
+            (function () {
+                var pluginId = "4b8a2c5f-7e3d-4f9a-8c1b-9d6e2a3b4c5d";
+
+                function loadConfig(page) {
+                    Dashboard.showLoadingMsg();
+                    ApiClient.getPluginConfiguration(pluginId).then(function (config) {
+                        page.querySelector("#ApiKey").value = config.ApiKey || "";
+                        page.querySelector("#Domain").value = config.Domain || "api.subtitlenexus.com";
+                        page.querySelector("#Model").value = config.Model || "lulu-2605";
+                        page.querySelector("#SubtitleLanguage").value = config.SubtitleLanguage || "en";
+                        page.querySelector("#AudioLanguage").value = config.AudioLanguage || "ja";
+                        page.querySelector("#Visibility").value = config.Visibility || "PUBLIC";
+                        page.querySelector("#IgnoreCommunitySubs").checked = !!config.IgnoreCommunitySubs;
+                        page.querySelector("#DisableSubtitleSearch").checked = !!config.DisableSubtitleSearch;
+                        page.querySelector("#AutoPurchasePastDailyLimit").checked = !!config.AutoPurchasePastDailyLimit;
+                        page.querySelector("#FfmpegPath").value = config.FfmpegPath || "";
+                        page.querySelector("#MaxConcurrentJobs").value = config.MaxConcurrentJobs || 1;
+                        Dashboard.hideLoadingMsg();
+                    });
+                }
+
+                function saveConfig(page) {
+                    Dashboard.showLoadingMsg();
+                    ApiClient.getPluginConfiguration(pluginId).then(function (config) {
+                        config.ApiKey = page.querySelector("#ApiKey").value;
+                        config.Domain = page.querySelector("#Domain").value;
+                        config.Model = page.querySelector("#Model").value;
+                        config.SubtitleLanguage = page.querySelector("#SubtitleLanguage").value;
+                        config.AudioLanguage = page.querySelector("#AudioLanguage").value;
+                        config.Visibility = page.querySelector("#Visibility").value;
+                        config.IgnoreCommunitySubs = page.querySelector("#IgnoreCommunitySubs").checked;
+                        config.DisableSubtitleSearch = page.querySelector("#DisableSubtitleSearch").checked;
+                        config.AutoPurchasePastDailyLimit = page.querySelector("#AutoPurchasePastDailyLimit").checked;
+                        config.FfmpegPath = page.querySelector("#FfmpegPath").value;
+                        config.MaxConcurrentJobs = parseInt(page.querySelector("#MaxConcurrentJobs").value, 10) || 1;
+                        ApiClient.updatePluginConfiguration(pluginId, config).then(Dashboard.processPluginConfigurationUpdateResult);
+                    });
+                }
+
+                document.querySelector("#SubtitleNexusConfigPage")
+                    .addEventListener("pageshow", function () {
+                        loadConfig(this);
+                    });
+
+                document.querySelector("#SubtitleNexusConfigForm")
+                    .addEventListener("submit", function (e) {
+                        saveConfig(e.target.closest(".page"));
+                        e.preventDefault();
+                        return false;
+                    });
+            })();
+        </script>
+    </div>
+</body>
+</html>
